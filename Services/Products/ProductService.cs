@@ -27,6 +27,13 @@ public class ProductService(IProductRepository productRepository , IUnitOfWork u
         return ServiceResult<List<ProductResponse>>.Success(productsAsDto);
     }
 
+    public async Task<ServiceResult<List<ProductResponse>>> GetPagedAllListAsync(int pageNumber, int pageSize)
+    {
+        var products = await productRepository.GetAll().Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+        var productsAsDto = products.Select(p => new ProductResponse(p.Id, p.Name, p.Price, p.Stock)).ToList();
+        return ServiceResult<List<ProductResponse>>.Success(productsAsDto);
+    }
+
     public async Task<ServiceResult<ProductResponse?>> GetByIdAsync(int id)
     {
         var product = await productRepository.GetByIdAsync(id);
@@ -43,6 +50,14 @@ public class ProductService(IProductRepository productRepository , IUnitOfWork u
 
     public async Task<ServiceResult<CreateProductResponse>> CreateAsync(CreateProductRequest request)
     {
+
+        var anyProduct = await productRepository.Where(x => x.Name == request.Name).AnyAsync();
+
+        if (anyProduct)
+        {
+            return ServiceResult<CreateProductResponse>.Fail("Ürün ismi veri tabanında bulnmaktadır.", HttpStatusCode.BadRequest);
+        }
+
         var product = new Product()
         {
             Name = request.Name,
@@ -52,7 +67,7 @@ public class ProductService(IProductRepository productRepository , IUnitOfWork u
 
         await productRepository.AddAsync(product);
         await unitOfWork.SaveChangesAsync();
-        return ServiceResult<CreateProductResponse>.Success(new CreateProductResponse(product.Id));
+        return ServiceResult<CreateProductResponse>.SuccessAsCreate(new CreateProductResponse(product.Id),$"api/products/{product.Id}");
     }
 
     public async Task<ServiceResult> UpdateAsync(int id , UpdateProductRequest request)
@@ -73,7 +88,22 @@ public class ProductService(IProductRepository productRepository , IUnitOfWork u
 
         productRepository.Update(product);
         await unitOfWork.SaveChangesAsync();
-        return ServiceResult.Success();
+        return ServiceResult.Success(HttpStatusCode.NoContent);
+    }
+
+    public async Task<ServiceResult> UpdateStock(UpdateProductStockRequest request)
+    {
+        var product = await productRepository.GetByIdAsync(request.ProductId);
+        if (product is null)
+        {
+            return ServiceResult.Fail("Product Not Found", HttpStatusCode.NotFound);
+        }
+
+        product.Stock = request.Quantity;
+        productRepository.Update(product);
+        await unitOfWork.SaveChangesAsync();
+        return ServiceResult.Success(HttpStatusCode.NoContent);
+
     }
 
     public async Task<ServiceResult> DeleteAsync(int id)

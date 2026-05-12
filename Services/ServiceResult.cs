@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Text.Json.Serialization;
 
 namespace App.Services;
 
@@ -6,9 +7,10 @@ public class ServiceResult<T>
 {
     public T? Data { get; set; }
     public List<string>? ErrorMessages { get; set; }
-    public bool IsSuccess => ErrorMessages == null || ErrorMessages.Count == 0;
-    public bool IsFail=> !IsSuccess;
-    public HttpStatusCode Status { get; set; }
+    [JsonIgnore] public bool IsSuccess => ErrorMessages == null || ErrorMessages.Count == 0;
+    [JsonIgnore] public bool IsFail=> !IsSuccess;
+    [JsonIgnore] public HttpStatusCode Status { get; set; }
+    [JsonIgnore] public string? UrlAsCreated { get; set; }    
 
     // Static Factory Method
     public static ServiceResult<T> Success(T data , HttpStatusCode status = HttpStatusCode.OK)
@@ -17,6 +19,15 @@ public class ServiceResult<T>
         {
             Data = data,
             Status = status
+        };
+    }
+    public static ServiceResult<T> SuccessAsCreate(T data , string urlAsCreated)
+    {
+        return new ServiceResult<T>()
+        {
+            Data = data,
+            Status = HttpStatusCode.Created,
+            UrlAsCreated = urlAsCreated
         };
     }
     public static ServiceResult<T> Fail(List<string> errorMessage , HttpStatusCode status  =HttpStatusCode.BadRequest)
@@ -40,9 +51,9 @@ public class ServiceResult<T>
 public class ServiceResult
 {
     public List<string>? ErrorMessages { get; set; }
-    public bool IsSuccess => ErrorMessages == null || ErrorMessages.Count == 0;
-    public bool IsFail => !IsSuccess;
-    public HttpStatusCode Status { get; set; }
+    [JsonIgnore] public bool IsSuccess => ErrorMessages == null || ErrorMessages.Count == 0;
+    [JsonIgnore] public bool IsFail => !IsSuccess;
+    [JsonIgnore] public HttpStatusCode Status { get; set; }
 
     // Static Factory Method
     public static ServiceResult Success(HttpStatusCode status = HttpStatusCode.OK)

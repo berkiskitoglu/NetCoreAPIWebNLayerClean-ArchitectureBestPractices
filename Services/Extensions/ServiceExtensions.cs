@@ -15,6 +15,7 @@ public static class ServiceExtensions
     {
         services.AddScoped<IProductService, ProductService>();
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+        services.AddAutoMapper(cfg => {},Assembly.GetExecutingAssembly());
         return services;
     }
 

@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using App.Repositories;
 using App.Repositories.Products;
+using App.Services.ExceptionHandler;
 using App.Services.Products;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
@@ -16,6 +17,8 @@ public static class ServiceExtensions
         services.AddScoped<IProductService, ProductService>();
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
         services.AddAutoMapper(cfg => {},Assembly.GetExecutingAssembly());
+        services.AddExceptionHandler<CriticalExceptionHandler>();
+        services.AddExceptionHandler<GlobalExceptionHandler>();
         return services;
     }
 

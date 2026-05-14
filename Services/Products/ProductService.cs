@@ -4,6 +4,7 @@ using App.Services.Products.Create;
 using App.Services.Products.Update;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
+using App.Services.ExceptionHandler;
 using AutoMapper;
 
 namespace App.Services.Products;

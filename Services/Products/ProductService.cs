@@ -4,8 +4,8 @@ using App.Services.Products.Create;
 using App.Services.Products.Update;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
-using App.Services.ExceptionHandler;
 using AutoMapper;
+using App.Services.Products.UpdateStock;
 
 namespace App.Services.Products;
 
@@ -69,7 +69,7 @@ public class ProductService(IProductRepository productRepository , IUnitOfWork u
 
         if(product is null)
         {
-          return  ServiceResult<ProductResponse?>.Fail("Product not Found", HttpStatusCode.NotFound);
+          return  ServiceResult<ProductResponse?>.Fail("Güncellenecek ürün bulunamadı.", HttpStatusCode.NotFound);
         }
 
         #region ManuelMapping
@@ -95,12 +95,14 @@ public class ProductService(IProductRepository productRepository , IUnitOfWork u
             return ServiceResult<CreateProductResponse>.Fail("Ürün ismi veri tabanında bulnmaktadır.", HttpStatusCode.BadRequest);
         }
 
-        var product = new Product()
-        {
-            Name = request.Name,
-            Price = request.Price,
-            Stock = request.Stock
-        };
+        var product = mapper.Map<Product>(request);
+
+        //var product = new Product()
+        //{
+        //    Name = request.Name,
+        //    Price = request.Price,
+        //    Stock = request.Stock
+        //};
 
         await productRepository.AddAsync(product);
         await unitOfWork.SaveChangesAsync();
@@ -119,9 +121,19 @@ public class ProductService(IProductRepository productRepository , IUnitOfWork u
         {
             return ServiceResult.Fail("Product not found", HttpStatusCode.NotFound);
         }
-        product.Name = request.Name;
-        product.Price = request.Price;
-        product.Stock = request.Stock;
+
+        var isProductNameExist = await productRepository.Where(x => x.Name == request.Name && x.Id != product.Id).AnyAsync();
+
+        if (isProductNameExist)
+        {
+            return ServiceResult.Fail("Ürün ismi veri tabanında bulnmaktadır.", HttpStatusCode.BadRequest);
+        }
+
+        //product.Name = request.Name;
+        //product.Price = request.Price;
+        //product.Stock = request.Stock;
+
+        product = mapper.Map(request, product);
 
         productRepository.Update(product);
         await unitOfWork.SaveChangesAsync();

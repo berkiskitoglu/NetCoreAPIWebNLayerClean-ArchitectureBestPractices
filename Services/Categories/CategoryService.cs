@@ -66,7 +66,7 @@ public class CategoryService(ICategoryRepository categoryRepository, IUnitOfWork
         var newCategory = mapper.Map<Category>(request);
         await categoryRepository.AddAsync(newCategory);
         await unitOfWork.SaveChangesAsync();
-        return ServiceResult<int>.Success(newCategory.Id);
+        return ServiceResult<int>.SuccessAsCreate(newCategory.Id, $"api/categories/{newCategory.Id}");
     }
 
     public async Task<ServiceResult> UpdateAsync(int id, UpdateCategoryRequest request)

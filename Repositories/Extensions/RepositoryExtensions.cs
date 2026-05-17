@@ -24,7 +24,7 @@ public static class RepositoryExtensions
         });
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
-        services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepostiory<>));
+        services.AddScoped(typeof(IGenericRepository<,>), typeof(GenericRepostiory<,>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         return services;
     }

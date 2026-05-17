@@ -2,16 +2,16 @@
 
 namespace App.Repositories.Categories;
 
-public class CategoryRepository(AppDbContext context) : GenericRepostiory<Category>(context) , ICategoryRepository
+public class CategoryRepository(AppDbContext context) : GenericRepostiory<Category,int>(context) , ICategoryRepository
 {
     public Task<Category?> GetCategoriesWithProductsAsync(int id)
     {
-      return context.Categories.Include(x => x.Products).FirstOrDefaultAsync(x => x.Id == id);
+      return Context.Categories.Include(x => x.Products).FirstOrDefaultAsync(x => x.Id == id);
     }
 
     public IQueryable<Category?> GetCategoryWithProducts()
     {
-        return context.Categories.Include(x => x.Products).AsQueryable();
+        return Context.Categories.Include(x => x.Products).AsQueryable();
     }
 }
 

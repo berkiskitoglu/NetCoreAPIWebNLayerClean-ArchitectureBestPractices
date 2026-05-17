@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 namespace App.Repositories.Products;
 
-public class ProductRepository(AppDbContext context) : GenericRepostiory<Product>(context), IProductRepository
+public class ProductRepository(AppDbContext context) : GenericRepostiory<Product,int>(context), IProductRepository
 {
     public Task<List<Product>> GetTopPriceProductAsync(int count)
     {

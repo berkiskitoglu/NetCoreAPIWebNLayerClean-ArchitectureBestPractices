@@ -115,25 +115,17 @@ public class ProductService(IProductRepository productRepository , IUnitOfWork u
         // Fast Fail Önce başarısız durumları ele al
         // Guard Clauses Önce tüm olumsuz durumları if if le yaz else yazma
 
-        var product = await productRepository.GetByIdAsync(id);
-
-        if(product is null)
-        {
-            return ServiceResult.Fail("Product not found", HttpStatusCode.NotFound);
-        }
-
-        var isProductNameExist = await productRepository.Where(x => x.Name == request.Name && x.Id != product.Id).AnyAsync();
+        var isProductNameExist = await productRepository.Where(x => x.Name == request.Name && x.Id != id).AnyAsync();
 
         if (isProductNameExist)
         {
             return ServiceResult.Fail("Ürün ismi veri tabanında bulnmaktadır.", HttpStatusCode.BadRequest);
         }
 
-        //product.Name = request.Name;
-        //product.Price = request.Price;
-        //product.Stock = request.Stock;
 
-        product = mapper.Map(request, product);
+
+        var product = mapper.Map<Product>(request);
+        product.Id = id;
 
         productRepository.Update(product);
         await unitOfWork.SaveChangesAsync();
@@ -158,13 +150,7 @@ public class ProductService(IProductRepository productRepository , IUnitOfWork u
     public async Task<ServiceResult> DeleteAsync(int id)
     {
         var product = await productRepository.GetByIdAsync(id);
-
-        if(product is null)
-        {
-            return ServiceResult.Fail("Product not found", HttpStatusCode.NotFound);
-        }
-
-        productRepository.Delete(product);
+        productRepository.Delete(product!);
         await unitOfWork.SaveChangesAsync();
         return ServiceResult.Success();
     }

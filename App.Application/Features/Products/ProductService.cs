@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using App.Application.Contracts.Caching;
 using App.Application.Contracts.Persistence;
 using App.Application.Features.Products.Create;
 using App.Application.Features.Products.Dto;
@@ -9,8 +10,9 @@ using AutoMapper;
 
 namespace App.Application.Features.Products;
 
-public class ProductService(IProductRepository productRepository , IUnitOfWork unitOfWork , IMapper mapper) : IProductService
+public class ProductService(IProductRepository productRepository , IUnitOfWork unitOfWork , IMapper mapper , ICacheService cacheService) : IProductService
 {
+    private const string ProdctListCacheKey = "product-list";
     public async Task<ServiceResult<List<ProductResponse>>> GetTopPriceProductAsync(int count)
     {
         var products = await productRepository.GetTopPriceProductAsync(count);
@@ -32,6 +34,20 @@ public class ProductService(IProductRepository productRepository , IUnitOfWork u
 
     public async Task<ServiceResult<List<ProductResponse>>> GetAllListAsync()
     {
+
+        //cache aside design pattern
+
+        // 1. any cache
+        // 2. from db
+        // 3. caching data
+
+
+        var productListAsCached = await cacheService.GetAsync<List<ProductResponse>>(ProdctListCacheKey);
+        if(productListAsCached != null)
+        {
+            return ServiceResult<List<ProductResponse>>.Success(productListAsCached);
+        }
+
         var products = await productRepository.GetAllAsync();
 
         #region ManuelMapping
@@ -42,6 +58,8 @@ public class ProductService(IProductRepository productRepository , IUnitOfWork u
         #endregion
 
         var productsAsDto = mapper.Map<List<ProductResponse>>(products);
+
+        await cacheService.AddAsync(ProdctListCacheKey, productsAsDto, TimeSpan.FromMinutes(5));
 
         return ServiceResult<List<ProductResponse>>.Success(productsAsDto);
     }

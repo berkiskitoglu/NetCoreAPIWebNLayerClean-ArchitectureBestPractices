@@ -1,4 +1,7 @@
-﻿using App.Domain.Options;
+﻿using App.Application.Contracts.ServiceBus;
+using App.Domain.Consts;
+using App.Domain.Options;
+using CleanApp.API.Consumers;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,10 +13,20 @@ public static class BusExtensions
     public static void AddBusExt(this IServiceCollection services, IConfiguration configuration)
     {
         var serviceBusOption = configuration.GetSection(nameof(ServiceBusOption)).Get<ServiceBusOption>();
+        services.AddScoped<IServiceBus, ServiceBus>();
 
         services.AddMassTransit(x =>
         {
-            x.UsingRabbitMq((context, cfg) => {cfg.Host(new Uri(serviceBusOption.Url),h => { }); });
+            x.AddConsumer<ProductAddedEventConsumer>();
+            x.UsingRabbitMq((context, cfg) =>
+            {
+                cfg.Host(new Uri(serviceBusOption.Url), h => { });
+                cfg.ReceiveEndpoint(ServiceBusConst.ProductAddedEventQueueName, e =>
+                    {
+                        e.ConfigureConsumer<ProductAddedEventConsumer>(context);
+                    });
+            });
+
         });
     }
 

@@ -162,7 +162,6 @@ CleanArchitecture/
 | Entity Framework Core 8 | ORM — Code First, Migrations |
 | AutoMapper | DTO ↔ Entity Mapping (Mapping/) |
 | FluentValidation | Request doğrulama (FluentValidationFilter) |
-| JWT Bearer | Kimlik doğrulama |
 | Swagger / OpenAPI | API dokümantasyonu |
 | CQRS (MediatR) | Clean Architecture — Features katmanı |
 | SQL Server | Veritabanı |
